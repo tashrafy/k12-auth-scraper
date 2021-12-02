@@ -14,11 +14,13 @@ const scraperObject = {
             links = links.filter(link => link && link.toLowerCase().indexOf("login") !== -1)
             return links;
         });
-        console.log('urls', urls)
+        console.log('login urls identified:', urls);
         // Loop through each of those links, open a new page instance and get the relevant data from them
         let pagePromise = (link) => new Promise(async(resolve, reject) => {
-            console.log('link', link)
-            let dataObj = {};
+            console.log('navigating to link:', link)
+            let dataObj = {
+                link,
+            };
             let newPage = await browser.newPage();
             try {
                 await newPage.goto(link);
@@ -38,7 +40,6 @@ const scraperObject = {
                 dataObj['isRegularLogin'] = false;
                 console.log(`Render link fail ${link}`, goToError);
             }
-            console.log('dataObj', dataObj)
             resolve(dataObj);
             await newPage.close();
         });
@@ -46,7 +47,7 @@ const scraperObject = {
         for(link in urls){
             let currentPageData = await pagePromise(urls[link]);
             // scrapedData.push(currentPageData);
-            console.log('currentPageData', currentPageData);
+            console.log('school scrape info:', currentPageData);
         }
 
 
