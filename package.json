@@ -1,0 +1,18 @@
+{
+  "name": "k12-auth-scraper",
+  "version": "1.0.0",
+  "description": "A webpage scraper to identify authentication mechanisms used by K-12 student websites.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "csv-to-json": "node csvToJson.js"
+  },
+  "author": "Taufiqur Ashrafy <tashrafy91@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.10",
+    "csv2json": "^2.0.2",
+    "puppeteer": "^12.0.1"
+  }
+}
