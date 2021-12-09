@@ -1,3 +1,4 @@
 *.csv
 school_districts.json
 node_modules
+public/*.json

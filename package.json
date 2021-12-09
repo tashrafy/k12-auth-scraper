@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
+    "app": "node server.js",
     "csv-to-json": "node csvToJson.js"
   },
   "author": "Taufiqur Ashrafy <tashrafy91@gmail.com>",
@@ -13,6 +14,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.10",
     "csv2json": "^2.0.2",
+    "express": "^4.17.1",
     "puppeteer": "^12.0.1"
   }
 }

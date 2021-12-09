@@ -1,3 +1,5 @@
+const { WHITELISTED_LOGIN_SELECTORS, WHITELISTED_SSO_SELECTORS } = require("./selectors");
+
 const scraperObject = {
     async scraper(browser, url) {
         let page = await browser.newPage();
@@ -14,7 +16,9 @@ const scraperObject = {
             links = links.filter(link => link && link.toLowerCase().indexOf("login") !== -1)
             return links;
         });
+        
         console.log('login urls identified:', urls);
+
         // Loop through each of those links, open a new page instance and get the relevant data from them
         let pagePromise = (link) => new Promise(async(resolve, reject) => {
             console.log('navigating to link:', link)
@@ -23,35 +27,71 @@ const scraperObject = {
             };
             let newPage = await browser.newPage();
             try {
-                await newPage.goto(link);
-                let var1, var2;
+                await newPage.goto(link, {
+                    waitUntil: 'networkidle2'
+                });
 
-                try {
-                    var1 = await newPage.waitForSelector('input[name=username]');
-                    dataObj['isRegularLogin'] = true;
-                } catch (e) {}
+                if (link.indexOf('login.microsoftonline.com') > -1 || link.indexOf('accounts.google.com') > -1) {
+                    dataObj['loginType'] = 'sso';
+                    resolve(dataObj);
+                    await newPage.close();
+                    return;
+                }
+
+                for (const key in WHITELISTED_SSO_SELECTORS) {
+                    let selector = WHITELISTED_SSO_SELECTORS[key];
+                    // console.log('key', key, selector)
+                    try {
+                        let elHandle = await newPage.waitForSelector(selector, {
+                            visible: true,
+                            timeout: 2000
+                        });
+                        console.log('selector found', selector)
+                        dataObj['loginType'] = 'sso';
+                        dataObj['selector'] = selector;
+                        break;
+                    } catch (e) {
+                        // console.log(`unable to identify selector ${selector}`, e);
+                    }
+                }
+
+                if (!dataObj['loginType']) {
+                    for (const key in WHITELISTED_LOGIN_SELECTORS) {
+                        let selector = WHITELISTED_LOGIN_SELECTORS[key];
+                        console.log('key', key, selector)
+                        try {
+                            let elHandle = await newPage.waitForSelector(selector, {
+                                visible: true,
+                                timeout: 2000
+                            });
+                            console.log('selector found', selector)
+                            dataObj['loginType'] = 'basic';
+                            dataObj['selector'] = selector;
+                            break;
+                        } catch (e) {
+                            // console.log(`unable to identify selector ${selector}`, e);
+                        }
+                    }
+                }
                 
-                try {
-                    var2 = await newPage.waitForSelector('input[name=UserName]')
-                    dataObj['isRegularLogin'] = true;
-                } catch (e) {}
-
             } catch (goToError) {
-                dataObj['isRegularLogin'] = false;
-                console.log(`Render link fail ${link}`, goToError);
+                dataObj['loginType'] = null;
+                // console.log(`Render link fail ${link}`, goToError);
             }
             resolve(dataObj);
+            console.log('closing link', link)
             await newPage.close();
         });
 
+        const urlData = [];
         for(link in urls){
             let currentPageData = await pagePromise(urls[link]);
             // scrapedData.push(currentPageData);
             console.log('school scrape info:', currentPageData);
+            urlData.push(currentPageData);
         }
-
-
-        return urls;
+        await page.close();
+        return urlData;
     }
 }
 
